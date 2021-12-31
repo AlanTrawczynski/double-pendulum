@@ -6,6 +6,12 @@
   /* outline: 1px solid red; */
 }
 
+:root {
+	--background-color: hsl(0, 0%, 0%);
+	--text-color: hsl(0, 0%, 100%);
+	--control-border-color: hsl(0, 0%, 50%);
+}
+
 body {
 	display: flex;
 
@@ -13,15 +19,26 @@ body {
 	width: 100vw;
 	
 	overflow: hidden;
-	background-color: hsl(0, 0%, 0%);
-	color: hsl(0, 0%, 100%);
+	background-color: var(--background-color);
+	color: var(--text-color);
 }
 
 .controls {
 	display: flex;
 	flex-direction: column;
-	align-items: stretch;
-	background-color: blue;
+	gap: 1rem;
+
+	padding: 1rem;
+	border-right: 1px solid var(--control-border-color);
+}
+
+button {
+	padding: 0.2rem;
+}
+
+.slider-container {
+	display: flex;
+	flex-direction: column;
 }
 
 .canvas-container {

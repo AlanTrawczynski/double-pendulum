@@ -1,18 +1,61 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width">
-    <title>replit</title>
-    <link href="style.css" rel="stylesheet" type="text/css" />
-  </head>
-  <body>
-		<aside class="controls">
-			<button>Test</button>
-			<input type="range">42</input>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>replit</title>
+	<link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+
+	<aside class="controls">
+		<button id="toggleExecButton">Run / Stop</button>
+		<button id="resetButton">Reset</button>
+			<div class="slider-container">
+				<label for="r1">Radius 1 = 
+					<span class="input-value" id="r1Value"></span>m
+				</label>
+				<input class="slider" id="r1Slider" name="r1" type="range" min=0.1 max=10 step=0.1></input>
+			</div>
+			<div class="slider-container">
+				<label for="r2">Radius 2 = 
+					<span class="input-value" id="r2Value"></span>m
+				</label>
+				<input class="slider" id="r2Slider" name="r2" type="range" min=0.1 max=10 step=0.1></input>
+			</div>
+			<div class="slider-container">
+				<label for="a1">Angle 1 = 
+					<span class="input-value" id="a1Value"></span>º
+				</label>
+				<input class="slider" id="a1Slider" name="a1" type="range" min=-180 max=180 step=1></input>
+			</div>
+			<div class="slider-container">
+				<label for="a2">Angle 2 = 
+					<span class="input-value" id="a2Value"></span>º
+				</label>
+				<input class="slider" id="a2Slider" name="a2" type="range" min=-180 max=180 step=1></input>
+			</div>
+			<div class="slider-container">
+				<label for="m1">Mass 1 = 
+					<span class="input-value" id="m1Value"></span>g
+				</label>
+				<input class="slider" id="m1Slider" name="m1" type="range" min=10 max=1000 step=1></input>
+			</div>
+			<div class="slider-container">
+				<label for="m2">Mass 2 = 
+					<span class="input-value" id="m2Value"></span>g
+				</label>
+				<input class="slider" id="m2Slider" name="m2" type="range" min=10 max=1000 step=1></input>
+			</div>
 		</aside>
+
 		<div class="canvas-container" id="canvasContainer"></div>
-    <script src="p5.min.js"></script>
-    <script src="sketch.js"></script>
+
+    <script src="js/double-pendulum.js"></script>
+		<script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/p5.min.js"></script>
+    <script src="js/sketch.js"></script>
   </body>
 </html>
