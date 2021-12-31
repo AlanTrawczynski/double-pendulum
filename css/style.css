@@ -6,37 +6,37 @@
   /* outline: 1px solid red; */
 }
 
-:root {
-	--background-color: hsl(0, 0%, 0%);
-	--text-color: hsl(0, 0%, 100%);
-	--control-border-color: hsl(0, 0%, 50%);
-}
-
 body {
-	display: flex;
 	height: 100vh;
 	width: 100vw;
 	
 	overflow: hidden;
-	background-color: var(--background-color);
-	color: var(--text-color);
+	background-color: hsl(0, 0%, 0%);
+}
+
+a.open-sidebar {
+	position: absolute;
+	top: 1rem;
+	left: 1rem;
+}
+
+a.run-stop {
+	position: absolute;
+	left: 1rem;
+	bottom: 1rem;
 }
 
 .controls {
-	width: clamp(220px, 15%, 300px);
 	display: flex;
 	flex-direction: column;
 
-	padding: 1rem;
 	gap: 2rem;
-	border-right: 2px solid var(--control-border-color);
 }
 
 .sliders-container {
 	display: flex;
 	flex-direction: column;
 
-	padding: 0 1rem;
 	flex-grow: 1;
 	gap: 1rem;
 	overflow-x: hidden;
@@ -49,6 +49,7 @@ body {
 }
 
 .canvas-container {
-	flex-grow: 1;
+	height: 100%;
+	width: 100%;
 }
 

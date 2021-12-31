@@ -1,6 +1,6 @@
 
 const canvasContainer = $('#canvasContainer')[0],
-	rsButton = $('#toggleExecButton')[0];
+	rsButton = $('#runStopButton')[0];
 
 
 let
@@ -69,6 +69,7 @@ function setup() {
 	tx = width / 2;
 	ty = height / 2;
 	initTrace();
+
 	// stop the execution
 	running = false;
 }
@@ -131,9 +132,6 @@ function drawPendulum(p) {
 // Funtion to execute RK4 model
 function runRK4(){
   pendulum.runRK4(t0)
-  // console.log(`t0 = ${t0}`)
-  // time update
-  t0 = t0+h;
   
 }
 
@@ -200,11 +198,11 @@ function updateScaleFactor() {
 
 function toggleExec() {
 	running = !running;
-	disableInputs();
+	document.querySelectorAll('input').forEach((input) => input.disabled = !input.disabled);
+	
+	if (running) {
+		UIkit.util.attr(rsButton, 'uk-icon', 'icon: stop; ratio: 2');
+	}	else {
+		UIkit.util.attr(rsButton, 'uk-icon', 'icon: play; ratio: 2');
+	}
 }
-
-
-function disableInputs() {
-	document.querySelectorAll('input').forEach((input) => input.disabled = true);
-}
-
