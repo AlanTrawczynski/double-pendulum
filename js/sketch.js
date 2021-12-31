@@ -131,7 +131,7 @@ function drawPendulum(p) {
 // Funtion to execute RK4 model
 function runRK4(){
   pendulum.runRK4(t0)
-  console.log(`t0 = ${t0}`)
+  // console.log(`t0 = ${t0}`)
   // time update
   t0 = t0+h;
   
@@ -205,6 +205,6 @@ function toggleExec() {
 
 
 function disableInputs() {
-	// document.querySelectorAll('input').forEach((input) => input.style.display = 'none');
+	document.querySelectorAll('input').forEach((input) => input.disabled = true);
 }
 
