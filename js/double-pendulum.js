@@ -4,7 +4,7 @@ class DoublePendulum {
 		// Radius (m)
 		this.r1 = r1;
 		this.r2 = r2;
-		// Mass (g)
+		// Mass (kg)
 		this.m1 = m1;
 		this.m2 = m2;
 		// Angle (rad)
@@ -57,7 +57,7 @@ class DoublePendulum {
 	}
 
 
-	runBackwardsEuler() {
+	runBackwardEuler() {
 		const [acc1, acc2] = this._eulerAccs();
 
 		this.v1 += acc1;
@@ -89,7 +89,6 @@ class DoublePendulum {
 	}
 
 
-	// Falta definir `dt`
 	runRK4(dt) {
 		let l = [this.a1, this.a2, this.v1, this.v2],
     k1,k2,k3,k4,ret;

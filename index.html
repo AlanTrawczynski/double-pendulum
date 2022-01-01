@@ -12,7 +12,8 @@
 <body>
 	<a class="open-sidebar" uk-icon="icon: menu; ratio: 1.5" uk-toggle="target: #sidebar"></a>
 
-	<div id="sidebar" uk-offcanvas="mode: push"> 
+
+	<div id="sidebar" uk-offcanvas="mode: push">
 		<aside class="controls uk-offcanvas-bar">
 			<div class="sliders-container">
 				<div class="slider-container">
@@ -52,13 +53,23 @@
 					<input class="slider uk-range" id="m2Slider" name="m2" type="range" min=10 max=1000 step=1></input>
 				</div>
 			</div>
+
+			<select id="methodSelect" class="uk-select" id="form-stacked-select">
+				<option value="RK4">Runge Kutta 4</option>
+				<option value="FE">Forward Euler</option>
+				<option value="BE">Backward Euler</option>
+			</select>
+
 			<button class="uk-button uk-button-danger" id="resetButton">Restart</button>
 		</aside>
 	</div>
 
+
 	<a id="runStopButton" class="run-stop" uk-icon="icon: play; ratio: 2"></a>
 	
+
 	<div class="canvas-container" id="canvasContainer"></div>
+
 
 	<script src="js/jquery-3.6.0.min.js"></script>
 	<script src="js/p5.min.js"></script>
