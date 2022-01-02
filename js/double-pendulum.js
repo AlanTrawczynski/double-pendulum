@@ -17,6 +17,7 @@ class DoublePendulum {
 		this.g = g;
 	}
 
+
 	// Pedulums coordinates
 	get x1() {
 		return this.r1 * Math.sin(this.a1);
@@ -91,16 +92,16 @@ class DoublePendulum {
 
 	runRK4(dt) {
 		let l = [this.a1, this.a2, this.v1, this.v2],
-    k1,k2,k3,k4,ret;
+			k1, k2, k3, k4, ret;
 
 		k1 = this._lagrange(l);
 
 		k2 = this._lagrange(l.map((x, i) =>
-			x + ( k1[i] / 2)
+			x + (k1[i] / 2)
 		));
 
 		k3 = this._lagrange(l.map((x, i) =>
-			x + ( k2[i] / 2)
+			x + (k2[i] / 2)
 		));
 
 		k4 = this._lagrange(l.map((x, i) =>
@@ -120,20 +121,16 @@ class DoublePendulum {
 
 	_lagrange(f) {
 		let [t1, t2, w1, w2] = f,
-    delta_t = t1-t2;
+			delta_t = t1 - t2,
 
-    // let f0 = ((this.m2 * this.r1 * w1**2 * Math.sin(2 * delta_t)) + (2 * this.m2 * this.r2 * w2**2 * Math.sin(delta_t)) + (2 * this.g * this.m2 * Math.cos(t2) * Math.sin(delta_t)) + (2 * this.g * this.m1 * Math.sin(t1)) ) / (-2 * this.r1 * (this.m1 + this.m2 * (Math.sin(delta_t)**2)));
+			an1 = (this.r2 / this.r1) * (this.m2 / (this.m1 + this.m2)) * Math.cos(t1 - t2),
+			an2 = (this.r1 / this.r2) * Math.cos(t1 - t2),
 
-    // let f1 = ((this.m2 * this.r2 * w2**2 * Math.sin(2*delta_t)) + (2 * (this.m1 + this.m2) * this.r1 * w2**2 *Math.sin(delta_t)) + (2 * this.g * (this.m1 + this.m2) * Math.cos(t1) * Math.sin(delta_t))) / ( 2 * this.r2 * (this.m1 + (this.m2 * Math.sin(delta_t)**2)));
+			f1 = -(this.r2 / this.r1) * (this.m2 / (this.m1 + this.m2)) * (w2 ** 2) * Math.sin(t1 - t2) - (this.g / this.r1) * Math.sin(t1),
+			f2 = (this.r1 / this.r2) * (w1 * w1) * Math.sin(t1 - t2) - (this.g / this.r2) * Math.sin(t2),
 
-		let an1 = (this.r2 / this.r1) * (this.m2 / (this.m1 + this.m2)) * Math.cos(t1 - t2);
-		let an2 = (this.r1 / this.r2) * Math.cos(t1 - t2);
-
-		let f1 = -(this.r2 / this.r1) * (this.m2 / (this.m1 + this.m2)) * (w2 ** 2) * Math.sin(t1 - t2) - (this.g / this.r1) * Math.sin(t1);
-		let f2 = (this.r1 / this.r2) * (w1 * w1) * Math.sin(t1 - t2) - (this.g / this.r2) * Math.sin(t2);
-
-		let g1 = (f1 - an1 * f2) / (1 - an1 * an2);
-		let g2 = (f2 - an2 * f1) / (1 - an1 * an2);
+			g1 = (f1 - an1 * f2) / (1 - an1 * an2),
+			g2 = (f2 - an2 * f1) / (1 - an1 * an2);
 
 		return [w1, w2, g1, g2];
 	}

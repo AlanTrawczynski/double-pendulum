@@ -20,13 +20,13 @@
 					<label for="r1">Radius 1 = 
 						<span class="input-value" id="r1Value"></span>m
 					</label>
-					<input class="slider uk-range" id="r1Slider" name="r1" type="range" min=0.1 max=10 step=0.1></input>
+					<input class="slider uk-range" id="r1Slider" name="r1" type="range" min=1 max=10 step=0.1></input>
 				</div>
 				<div class="slider-container">
 					<label for="r2">Radius 2 = 
 						<span class="input-value" id="r2Value"></span>m
 					</label>
-					<input class="slider uk-range" id="r2Slider" name="r2" type="range" min=0.1 max=10 step=0.1></input>
+					<input class="slider uk-range" id="r2Slider" name="r2" type="range" min=1 max=10 step=0.1></input>
 				</div>
 				<div class="slider-container">
 					<label for="a1">Angle 1 = 
@@ -54,19 +54,25 @@
 				</div>
 			</div>
 
+			<div id="fadeSwitch" class="switch">
+				<span>Fade</span> 
+				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+					<li><a href="#">On</a></li>
+					<li class="uk-active"><a href="#">Off</a></li>
+				</ul>
+			</div>
+
 			<select id="methodSelect" class="uk-select" id="form-stacked-select">
 				<option value="RK4">Runge Kutta 4</option>
 				<option value="FE">Forward Euler</option>
 				<option value="BE">Backward Euler</option>
 			</select>
-
-			<button class="uk-button uk-button-danger" id="resetButton">Restart</button>
 		</aside>
 	</div>
 
 
 	<a id="runStopButton" class="run-stop" uk-icon="icon: play; ratio: 2"></a>
-	
+	<a id="resetButton" class="reset" uk-icon="icon: refresh; ratio: 1.5"></a>
 
 	<div class="canvas-container" id="canvasContainer"></div>
 

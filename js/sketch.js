@@ -1,14 +1,16 @@
 
-const canvasContainer = $('#canvasContainer')[0],
+const canvasContainer = $('#canvasContainer'),
 	rsButton = $('#runStopButton')[0],
-	methodSelect = $("#methodSelect")[0];
-
+	methodSelect = $("#methodSelect")[0],
+	fadeSwitch = $("#fadeSwitch");
 
 let
-	// true if canvas is executing
+	// true if canvas is running
 	running,
 	// trace renderer
 	trace,
+	// interface size
+	scaleFactor,
 	// translate
 	tx, ty,
 	// pendulum
@@ -21,32 +23,17 @@ let
 		-130 * (Math.PI / 180),	// a2
 		9.8 / (60 ** 2) 				// g
 	),
-
-	// modes (0: line, else: dot)
-	traceMode = 0,
+	// pendulum previous position
+	x2prev = null,
+	y2prev = null,
 	// colors
 	backgroundColor,
 	pendulumColor,
 	traceColor,
 	textColor,
-	// weigths
-	pendulumWeight = 0.1,
-	traceWeight = 0.02,
-
-	scaleFactor,
-
-	// previous pendulum position
-	x2prev = null,
-	y2prev = null,
-
-	// Tiempo inicial y máximo (RK4)
-	t0 = 0,
-	t = 60 * 10,
-	// Particiones del tiempo
-	n = 60 * 60 * 24,
-	// Paso del tiempo (dt)
-	h = (t - t0) / n;
-;
+	// fps
+	currentFPS = 60,
+	accumulatorFPS = 0;
 
 
 function setColors() {
@@ -64,13 +51,11 @@ function setup() {
 	initInterface();
 
 	const canvas = createCanvas();
-	canvas.parent(canvasContainer);
-	resizeCanvas(canvasContainer.clientWidth, canvasContainer.clientHeight);
+	canvas.parent(canvasContainer[0]);
+	resizeCanvas(canvasContainer.width(), canvasContainer.height());
 
 	// frameRate(30);
 	setColors();
-	tx = width / 2;
-	ty = height / 2;
 	updateScaleFactor();
 
 	// stop the execution
@@ -117,25 +102,23 @@ function runPendulum() {
 
 
 function drawTrace(p) {
+	const traceWeight = 1.3 / scaleFactor;
+	trace.strokeWeight(traceWeight);
 	trace.stroke(traceColor);
 
-	if (traceMode) {
-		trace.circle(p.x2, p.y2, traceWeight);
-	}
-	else {
-		if (x2prev !== null) {
-			trace.strokeWeight(traceWeight);
-			trace.line(x2prev, y2prev, p.x2, p.y2);
-			fadeTrace(p.x2, p.y2, x2prev, y2prev);
-		}
+	if (x2prev !== null) {
+		trace.line(x2prev, y2prev, p.x2, p.y2);
 
-		x2prev = p.x2;
-		y2prev = p.y2;
+		if (fadeSwitch.find(".uk-active").text() == 'On') {
+			fadeTrace(p.x2, p.y2, x2prev, y2prev, traceWeight);
+		}
 	}
+
+	x2prev = p.x2;
+	y2prev = p.y2;
 }
 
-
-function fadeTrace(x, y, xprev, yprev) {
+function fadeTrace(x, y, xprev, yprev, traceWeight) {
 	const delay = 500;	// ms
 
 	setTimeout(() => {
@@ -147,26 +130,33 @@ function fadeTrace(x, y, xprev, yprev) {
 
 
 function drawPendulum(p) {
+	const pendulumWeight = 8 / scaleFactor;
 	strokeWeight(pendulumWeight);
 	stroke(pendulumColor);
 	fill(pendulumColor);
 
 	// pendulum 1
 	line(0, 0, p.x1, p.y1);
-	circle(p.x1, p.y1, p.m1);
+	circle(p.x1, p.y1, log(p.m1 + 1) * 0.4);
 	// pendulum 2
 	line(p.x1, p.y1, p.x2, p.y2);
-	circle(p.x2, p.y2, p.m2);
+	circle(p.x2, p.y2, log(p.m2 + 1) * 0.4);
 }
 
 
 function showFPS() {
 	const padding = 10;
-
 	stroke(textColor);
 	fill(textColor);
 	textAlign(RIGHT, TOP);
-	text(`fps: ${round(frameRate())}`, 0, padding, width - padding, height);
+
+	accumulatorFPS += frameRate();
+	if (frameCount % 10 == 0) {
+		currentFPS = round(accumulatorFPS / 10);
+		accumulatorFPS = 0;
+	}
+
+	text(`fps: ${currentFPS}`, 0, padding, width - padding, height);
 }
 
 
@@ -255,8 +245,14 @@ function controlMassInput(slider, valueContainer, varName) {
 
 
 function updateScaleFactor() {
+	updateTranslate();
 	scaleFactor = min(width, height) / (2.2 * (pendulum.r1 + pendulum.r2));
 	initTrace();
+}
+
+function updateTranslate() {
+	tx = width / 2;
+	ty = height / 2;
 }
 
 
@@ -273,8 +269,8 @@ function toggleExec() {
 
 
 function windowResized() {
-	// resizeCanvas(canvasContainer.clientWidth, canvasContainer.clientHeight);
-	// updateScaleFactor();
+	resizeCanvas(canvasContainer.width(), canvasContainer.height());
+	updateScaleFactor();
 }
 
 
