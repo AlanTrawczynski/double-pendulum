@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width">
-	<title>replit</title>
+	<title>Double Pendulum</title>
 	<link href="css/uikit.min.css" rel="stylesheet" type="text/css" />
 	<link href="css/style.css" rel="stylesheet" type="text/css" />
 </head>
@@ -54,12 +54,32 @@
 				</div>
 			</div>
 
+
 			<div id="fadeSwitch" class="switch">
 				<span>Fade</span> 
 				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
 					<li><a href="#">On</a></li>
 					<li class="uk-active"><a href="#">Off</a></li>
 				</ul>
+			</div>
+
+			<div id="pendulumVisibilitySwitch" class="switch">
+				<span>Pendulum</span> 
+				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+					<li><a href="#">Hidden</a></li>
+					<li class="uk-active"><a href="#">Visible</a></li>
+				</ul>
+			</div>
+
+			<div class="slider-container">
+				<div class="slider-label">
+					<label for="speed">Speed</label>
+					<div class="uk-inline">
+						<span class="uk-form-icon">×</span>
+						<input class="input-value uk-input uk-form-small" id="speedValue" name="speed" type="text" autocomplete="off">
+					</div>
+				</div>
+				<input class="slider uk-range" id="speedSlider" name="speed" type="range" min=1 max=10 step=1></input>
 			</div>
 
 			<select id="methodSelect" class="uk-select" id="form-stacked-select">
@@ -73,9 +93,8 @@
 
 	<a id="runStopButton" class="run-stop" uk-icon="icon: play; ratio: 2"></a>
 	<a id="resetButton" class="reset" uk-icon="icon: refresh; ratio: 1.5"></a>
-
+	<div class="fps" id="fpsDisplay"></div>
 	<div class="canvas-container" id="canvasContainer"></div>
-
 
 	<script src="js/jquery-3.6.0.min.js"></script>
 	<script src="js/p5.min.js"></script>

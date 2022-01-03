@@ -32,6 +32,15 @@ a.reset {
 	bottom: 1rem;
 }
 
+.fps {
+	position: fixed;
+	top: 0rem;
+	right: 0.3rem;
+}
+.fps::before {
+	content: "fps: ";
+}
+
 .controls {
 	display: flex;
 	flex-direction: column;
@@ -50,7 +59,13 @@ a.reset {
 .slider-container {
 	display: flex;
 	flex-direction: column;
-	gap: 0.5rem;
+	gap: 1rem;
+}
+
+.slider-label {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
 }
 
 .switch {
@@ -58,9 +73,11 @@ a.reset {
 	align-items: center;
   justify-content: space-between;
 }
-
 .switch > .uk-subnav {
 	margin: 0;
+}
+.switch > .uk-subnav > li:first-child {
+	padding: 0;
 }
 
 .canvas-container {

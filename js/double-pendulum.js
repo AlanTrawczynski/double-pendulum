@@ -17,7 +17,6 @@ class DoublePendulum {
 		this.g = g;
 	}
 
-
 	// Pedulums coordinates
 	get x1() {
 		return this.r1 * Math.sin(this.a1);

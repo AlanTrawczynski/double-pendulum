@@ -1,12 +1,16 @@
 
 const canvasContainer = $('#canvasContainer'),
 	rsButton = $('#runStopButton')[0],
-	methodSelect = $("#methodSelect")[0],
-	fadeSwitch = $("#fadeSwitch");
+	methodSelect = $("#methodSelect"),
+	fpsDisplay = $("#fpsDisplay"),
+	fadeSwitch = $("#fadeSwitch"),
+	pendulumVisibilitySwitch = $("#pendulumVisibilitySwitch");
 
 let
 	// true if canvas is running
 	running,
+	// execution speed
+	speed = 1,
 	// trace renderer
 	trace,
 	// interface size
@@ -39,7 +43,6 @@ let
 function setColors() {
 	backgroundColor = color(0);
 	pendulumColor = color(150);
-	// pendulumColor = color("hsl(0,0%, 40%)");
 	traceColor = color('hsl(160, 100%, 50%)');
 	textColor = pendulumColor;
 }
@@ -54,7 +57,7 @@ function setup() {
 	canvas.parent(canvasContainer[0]);
 	resizeCanvas(canvasContainer.width(), canvasContainer.height());
 
-	// frameRate(30);
+	imageMode(CENTER);
 	setColors();
 	updateScaleFactor();
 
@@ -72,22 +75,47 @@ function initTrace() {
 
 
 function draw() {
+	const showPendulum = pendulumVisibilitySwitch.find(".uk-active").text() == 'Visible';
+
 	background(backgroundColor);
-	showFPS();
+	updateFPS();
+	translate(tx, ty);
+	push();
 	image(trace, 0, 0);
 
-	translate(tx, ty);
-	scale(scaleFactor);
-	if (running) {
-		runPendulum();
-		drawTrace(pendulum);
+	if (running) {		
+		if (speed <= 30) {
+			// slow execution
+			for (let i = 0; i < speed; i++) {
+				background(backgroundColor);
+				pop(); push();
+				image(trace, 0, 0);
+				scale(scaleFactor);
+
+				runPendulum();
+				if (showPendulum) {
+					drawPendulum(pendulum);
+				}
+				drawTrace(pendulum);
+			}
+		} else {
+			// fast execution
+			for (let i = 0; i < speed; i++) {
+				runPendulum();
+				drawTrace(pendulum);
+			}
+		}
+	} else {
+		scale(scaleFactor);
+		if (showPendulum) {
+			drawPendulum(pendulum);
+		}
 	}
-	drawPendulum(pendulum);
 }
 
 
 function runPendulum() {
-	switch (methodSelect.value) {
+	switch (methodSelect.val()) {
 		case "RK4":
 			pendulum.runRK4();
 			break;
@@ -98,6 +126,21 @@ function runPendulum() {
 			pendulum.runBackwardEuler();
 			break;
 	}
+}
+
+
+function drawPendulum(p) {
+	const pendulumWeight = 8 / scaleFactor;
+	strokeWeight(pendulumWeight);
+	stroke(pendulumColor);
+	fill(pendulumColor);
+
+	// pendulum 1
+	line(0, 0, p.x1, p.y1);
+	circle(p.x1, p.y1, log(p.m1 + 1) * 0.4);
+	// pendulum 2
+	line(p.x1, p.y1, p.x2, p.y2);
+	circle(p.x2, p.y2, log(p.m2 + 1) * 0.4);
 }
 
 
@@ -119,7 +162,7 @@ function drawTrace(p) {
 }
 
 function fadeTrace(x, y, xprev, yprev, traceWeight) {
-	const delay = 500;	// ms
+	const delay = 500 / speed;	// ms
 
 	setTimeout(() => {
 		trace.stroke(backgroundColor);
@@ -129,34 +172,13 @@ function fadeTrace(x, y, xprev, yprev, traceWeight) {
 }
 
 
-function drawPendulum(p) {
-	const pendulumWeight = 8 / scaleFactor;
-	strokeWeight(pendulumWeight);
-	stroke(pendulumColor);
-	fill(pendulumColor);
-
-	// pendulum 1
-	line(0, 0, p.x1, p.y1);
-	circle(p.x1, p.y1, log(p.m1 + 1) * 0.4);
-	// pendulum 2
-	line(p.x1, p.y1, p.x2, p.y2);
-	circle(p.x2, p.y2, log(p.m2 + 1) * 0.4);
-}
-
-
-function showFPS() {
-	const padding = 10;
-	stroke(textColor);
-	fill(textColor);
-	textAlign(RIGHT, TOP);
-
+function updateFPS() {
 	accumulatorFPS += frameRate();
 	if (frameCount % 10 == 0) {
 		currentFPS = round(accumulatorFPS / 10);
 		accumulatorFPS = 0;
 	}
-
-	text(`fps: ${currentFPS}`, 0, padding, width - padding, height);
+	fpsDisplay.text(currentFPS);
 }
 
 
@@ -166,39 +188,31 @@ function showFPS() {
 
 function initInterface() {
 	$('.slider').each(function () {
-		const sliderType = this.id[0],
-			valueContainer = $("#" + this.id.substring(0, 2) + "Value")[0],
-			varName = this.name;
+		const varName = this.name,
+			varType = varName[0],
+			valueContainer = $("#" + this.name + "Value");
 
-		switch (sliderType) {
+		switch (varType) {
 			case 'r':
-				initRadiusInput(this, valueContainer, varName);
+				this.value = eval(`pendulum.${varName}`);
+				valueContainer.html(this.value);
 				break;
 			case 'a':
-				initAngleInput(this, valueContainer, varName);
+				this.value = degrees(eval(`pendulum.${varName}`));	// rad -> º
+				valueContainer.html(this.value);
 				break;
 			case 'm':
-				initMassInput(this, valueContainer, varName);
+				this.value = 1000 * eval(`pendulum.${varName}`);	// kg -> g
+				valueContainer.html(this.value);
 				break;
+			default:
+				this.value = eval(varName);
+				valueContainer.val(this.value);
 		}
+		// valueContainer.html(this.value);
 	});
 
 	addEventListeners();
-}
-
-function initRadiusInput(slider, valueContainer, varName) {
-	slider.value = eval(`pendulum.${varName}`);
-	valueContainer.innerHTML = slider.value;
-}
-
-function initAngleInput(slider, valueContainer, varName) {
-	slider.value = degrees(eval(`pendulum.${varName}`));		// rad -> º
-	valueContainer.innerHTML = slider.value;
-}
-
-function initMassInput(slider, valueContainer, varName) {
-	slider.value = 1000 * eval(`pendulum.${varName}`);	// kg -> g
-	valueContainer.innerHTML = slider.value;
 }
 
 
@@ -206,41 +220,68 @@ function addEventListeners() {
 	rsButton.addEventListener('click', toggleExec);
 	resetButton.addEventListener('click', () => location.reload());
 	$('.slider').on("input", controlSliderInput);
+	$('.input-value').on("input", controlValueInput);
 }
 
 function controlSliderInput(e) {
 	const slider = e.target,
-		sliderType = slider.id[0],
-		valueContainer = $("#" + slider.id.substring(0, 2) + "Value")[0],
-		varName = slider.name;
+		varName = slider.name,
+		varType = varName[0],
+		valueContainer = $("#" + varName + "Value");
 
-	switch (sliderType) {
+	switch (varType) {
 		case 'r':
-			controlRadiusInput(slider, valueContainer, varName);
+			valueContainer.html(this.value);
+			eval(`pendulum.${varName} = ${slider.value}`);
+			updateScaleFactor();
 			break;
 		case 'a':
-			controlAngleInput(slider, valueContainer, varName);
+			valueContainer.html(this.value);
+			eval(`pendulum.${varName} = ${radians(slider.value)}`);		// º -> rad
 			break;
 		case 'm':
-			controlMassInput(slider, valueContainer, varName);
+			valueContainer.html(this.value);
+			eval(`pendulum.${varName} = ${slider.value / 1000}`);		// g -> kg
 			break;
+		default:
+			valueContainer.val(this.value);
+			eval(`${varName} = ${slider.value}`);
 	}
 }
 
-function controlRadiusInput(slider, valueContainer, varName) {
-	valueContainer.innerHTML = slider.value;
-	eval(`pendulum.${varName} = ${slider.value}`);
-	updateScaleFactor();
-}
+// comprobar si no entra en bucle cuando se modifica slider
+function controlValueInput(e) {
+	const valueContainer = e.target,
+		varName = valueContainer.name,
+		varType = varName[0],
+		slider = $("#" + varName + "Slider");
 
-function controlAngleInput(slider, valueContainer, varName) {
-	valueContainer.innerHTML = slider.value;
-	eval(`pendulum.${varName} = ${radians(slider.value)}`);
-}
+	switch (varType) {
+		case 'r':
+			slider.val(valueContainer.innerHTML)
+			eval(`pendulum.${varName} = ${slider.value}`);
+			updateScaleFactor();
+			break;
+		case 'a':
+			slider.val(valueContainer.innerHTML)
+			eval(`pendulum.${varName} = ${radians(slider.value)}`);		// º -> rad
+			break;
+		case 'm':
+			slider.val(valueContainer.innerHTML)
+			eval(`pendulum.${varName} = ${slider.value / 1000}`);		// g -> kg
+			break;
+		default:
+			// sacar a funsion 
+			const dotIndex = valueContainer.value.indexOf(".");
+			let value = valueContainer.value.replace(/\D+/g, "");
+			if (dotIndex !== -1) {
+				value = value.slice(0, dotIndex) + "." + value.slice(dotIndex);
+			}
 
-function controlMassInput(slider, valueContainer, varName) {
-	valueContainer.innerHTML = slider.value;
-	eval(`pendulum.${varName} = ${slider.value / 1000}`);
+			valueContainer.value = value;
+			slider.val(value);
+			eval(`${varName} = ${+value}`);
+	}
 }
 
 
