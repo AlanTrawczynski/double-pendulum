@@ -141,7 +141,7 @@ class DoublePendulum {
 		ret = k1.map((x, i) =>
 			(1 / 6) * (x + 2 * k2[i] + 2 * k3[i] + k4[i])
 		);
-
+    
 		this.a1 += ret[0];
 		this.a2 += ret[1];
 		this.v1 += ret[2];
@@ -166,7 +166,6 @@ class DoublePendulum {
 
 		return [w1, w2, g1, g2];
 	}
-
 }
 
 

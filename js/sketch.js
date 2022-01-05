@@ -23,7 +23,7 @@ let
 	// max number of pendulums
 	maxPendulums = 7,
 	// pendulums
-	pendulums = [],
+	pendulums = {},
 	// gravity	
 	g = 9.8 / (60 ** 2),
 	// colors
@@ -43,72 +43,6 @@ function initColors() {
 
 	const hue = round(random() * 360);
 	traceColors = Array.from({ length: maxPendulums }, (_, i) => color(`hsl(${round((hue + (360 / maxPendulums) * i) % 360)}, 100%, 50%)`));
-}
-
-
-function createPendulum(r1, r2, m1, m2, a1, a2) {
-	const p = pendulums.length === 0 ?
-		new DoublePendulum(2, 2.5, 0.05, 0.05, 130 * (Math.PI / 180), -130 * (Math.PI / 180), g, false) : DoublePendulum.fromPendulum(pendulums[0]);
-
-	p.traceColor = traceColors.pop();
-	pendulums.push(p);
-	createPendulumSidebar();
-	createPendulumIcon(p);
-	updateInterface();
-
-	if (pendulums.length === maxPendulums) {
-		newPendulumButton.hide();
-	}
-}
-
-function createPendulumSidebar() {
-	const n = pendulums.length - 1,
-		vars = [{ name: "Radius", min: 1, max: 10, step: 0.1, unit: "m" },
-		{ name: "Angle", min: -180, max: 180, step: 1, unit: "°" },
-		{ name: "Mass", min: 10, max: 1000, step: 1, unit: "g" }];
-
-	let html = `
-		<div id="p${n}Sidebar" class="sidebar" uk-offcanvas="mode: push">
-			<div class="pendulum-settings uk-offcanvas-bar">`
-
-
-	for (const [i, v] of vars.entries()) {
-		for (let j = 1; j <= 2; j++) {
-			const v0 = v.name[0].toLowerCase(),
-				inputId = `${v0}${j}Value-${n}`,
-				sliderId = `${v0}${j}Slider-${n}`,
-				name = `${v0}${j}-${n}`;
-
-			html += `
-				<div class="slider-container">
-					<div class="slider-label">
-						<label for="${name}">${v.name} ${j}</label>
-						<div class="uk-inline">
-							<span class="uk-form-icon uk-form-icon-flip">${v.unit}</span>
-							<input class="input-value uk-input uk-form-small" id="${inputId}" name="${name}" type="text" autocomplete="off">
-						</div>
-					</div>
-					<input class="slider uk-range" id="${sliderId}" name="${name}" type="range" min=${v.min} max=${v.max} step=${v.step}>
-				</div>`
-		}
-		html += i === vars.length - 1 ? "" : `<hr>`
-	}
-	html += `
-			</div>
-		</div>`
-
-	$("body").append(html);
-}
-
-function createPendulumIcon(p) {
-	const n = pendulums.length - 1,
-		html = `<a class="sidebar-icon" id="p${n}Icon" uk-icon="icon: social; ratio: 1.5" uk-toggle="target: #p${n}Sidebar"></a>`;
-
-	$("#controlIcons").append(html);
-	const elem = $(`#p${n}Icon`);
-
-	elem.css("border-left", `2px solid ${p.traceColor.toString()}`);
-	elem.css("padding-left", parseInt(elem.css("padding-left")) - 2);
 }
 
 
@@ -141,6 +75,23 @@ function setup() {
 }
 
 
+function createPendulum(r1, r2, m1, m2, a1, a2) {
+	const p = Object.keys(pendulums).length === 0 ?
+		new DoublePendulum(2, 2.5, 0.05, 0.05, 130 * (Math.PI / 180), -130 * (Math.PI / 180), g, false) : DoublePendulum.fromPendulum(pendulums[0]),
+		n = [...Array(maxPendulums).keys()].filter(k => !Object.keys(pendulums).includes('' + k))[0];
+
+	p.traceColor = traceColors.pop();
+	pendulums[n] = p;
+	createPendulumSidebar(n);
+	createPendulumIcon(p, n);
+	updateInterface();
+
+	if (Object.keys(pendulums).length === maxPendulums) {
+		newPendulumButton.remove();
+	}
+}
+
+
 function initTrace() {
 	trace = createGraphics(width, height);
 	trace.translate(tx, ty);
@@ -155,11 +106,11 @@ function draw() {
 	background(backgroundColor);
 	updateFPS();
 	translate(tx, ty);
-	push();
 	image(trace, 0, 0);
 
 	if (running) {
 		if (speed <= 30) {
+			push();
 			// slow execution
 			for (let i = 0; i < speed; i++) {
 				background(backgroundColor);
@@ -189,7 +140,7 @@ function draw() {
 
 
 function runPendulums() {
-	for (const p of pendulums) {
+	for (const p of Object.values(pendulums)) {
 		switch (solverSelect.val()) {
 			case "RK4":
 				p.runRK4();
@@ -209,11 +160,11 @@ function drawPendulum() {
 	const pendulumWeight = 8 / scaleFactor;
 	strokeWeight(pendulumWeight);
 
-	for (const p of pendulums) {
+	for (const p of Object.values(pendulums)) {
 		stroke(pendulumColor);
 		fill(pendulumColor);
-		// pendulum 1
 
+		// pendulum 1
 		line(0, 0, p.x1, p.y1);
 		circle(p.x1, p.y1, log(p.m1 + 1) * 0.4);
 
@@ -231,7 +182,7 @@ function drawTraces() {
 		fadeOn = fadeSwitch.find(".uk-active").text() == 'On';
 	trace.strokeWeight(traceWeight);
 
-	for (const p of pendulums) {
+	for (const p of Object.values(pendulums)) {
 		trace.stroke(p.traceColor);
 
 		if (p.x2prev !== undefined) {
@@ -306,6 +257,7 @@ function addEventListeners() {
 	newPendulumButton.click(createPendulum);
 	$("body").on("input", ".slider", controlSliderInput);
 	$("body").on("input", ".input-value", controlValueInput);
+	$("body").on("click", ".delete-pendulum", deletePendulum);
 
 	$("body").on('show', '.sidebar', function (e) {
 		const name = e.target.id.split("S")[0];
@@ -352,7 +304,7 @@ function controlValueInput(e) {
 		slider = $(`#${varName}Slider${pstring}`),
 		svalue = filterNumberInput(valueContainer.value);
 
-	valueContainer.value = svalue;
+	valueContainer.value = svalue !== "" ? svalue : 0;
 	const value = +svalue;
 	slider.val(value);
 
@@ -373,18 +325,35 @@ function controlValueInput(e) {
 }
 
 function filterNumberInput(s) {
-	const dotIndex = s.indexOf(".");
+	const negative = s[0] === "-",
+		dotIndex = negative ? s.substring(1).indexOf(".") : s.indexOf(".");
 	let value = s.replace(/\D+/g, "");
+
 	if (dotIndex !== -1) {
 		value = value.slice(0, dotIndex) + "." + value.slice(dotIndex);
 	}
+	if (negative) {
+		value = "-" + value;
+	}
+
 	return value;
+}
+
+
+function deletePendulum(e) {
+	const i = e.target.dataset.p,
+		p = pendulums[i];
+
+	traceColors.push(p.traceColor);
+	delete pendulums[i];
+	$(`#p${i}Sidebar`).remove();
+	$(`#p${i}Icon`).remove();
 }
 
 
 function updateScaleFactor() {
 	updateTranslate();
-	scaleFactor = min(width, height) / max(pendulums.map(p => (2.2 * (p.r1 + p.r2))));
+	scaleFactor = min(width, height) / max(Object.values(pendulums).map(p => (2.2 * (p.r1 + p.r2))));
 	initTrace();
 }
 
@@ -396,12 +365,16 @@ function updateTranslate() {
 
 function toggleExec() {
 	running = !running;
-	document.querySelectorAll('input').forEach((input) => input.disabled = !input.disabled);
+	$('.disable-when-running').each((_, input) => {
+		input.disabled = !input.disabled;
+	});
 
 	if (running) {
 		UIkit.util.attr(rsButton, 'uk-icon', 'icon: stop; ratio: 2');
+		newPendulumButton.hide();
 	} else {
 		UIkit.util.attr(rsButton, 'uk-icon', 'icon: play; ratio: 2');
+		newPendulumButton.show();
 	}
 }
 
@@ -416,4 +389,64 @@ function keyPressed() {
 	if (keyCode === 32) {		// spacebar
 		toggleExec();
 	}
+}
+
+
+
+
+
+// HTML
+// --------
+
+function createPendulumSidebar(n) {
+	const vars = [{ name: "Radius", min: 1, max: 10, step: 0.1, unit: "m" },
+	{ name: "Angle", min: -180, max: 180, step: 1, unit: "°" },
+	{ name: "Mass", min: 10, max: 1000, step: 1, unit: "g" }];
+
+	let html = `
+		<div id="p${n}Sidebar" class="sidebar" uk-offcanvas="mode: push">
+			<div class="pendulum-settings uk-offcanvas-bar">`
+
+	for (const [i, v] of vars.entries()) {
+		for (let j = 1; j <= 2; j++) {
+			const v0 = v.name[0].toLowerCase(),
+				inputId = `${v0}${j}Value-${n}`,
+				sliderId = `${v0}${j}Slider-${n}`,
+				name = `${v0}${j}-${n}`;
+
+			html += `
+				<div class="slider-container">
+					<div class="slider-label">
+						<label for="${name}">${v.name} ${j}</label>
+						<div class="uk-inline">
+							<span class="uk-form-icon uk-form-icon-flip">${v.unit}</span>
+							<input class="input-value uk-input uk-form-small disable-when-running" id="${inputId}" name="${name}" type="text" autocomplete="off">
+						</div>
+					</div>
+					<input class="slider uk-range disable-when-running" id="${sliderId}" name="${name}" type="range" min=${v.min} max=${v.max} step=${v.step}>
+				</div>`
+		}
+		html += n === 0 && i === vars.length - 1 ?
+			"" : `<hr>`
+	}
+
+	if (n > 0) {
+		html += `<button class="uk-button uk-button-danger delete-pendulum disable-when-running" data-p=${n}>Delete pendulum</button>`
+	}
+	html += `
+			</div>
+		</div>`
+
+	$("body").append(html);
+}
+
+
+function createPendulumIcon(p, n) {
+	const html = `<a class="sidebar-icon" id="p${n}Icon" uk-icon="icon: social; ratio: 1.5" uk-toggle="target: #p${n}Sidebar"></a>`;
+
+	$("#controlIcons").append(html);
+	const elem = $(`#p${n}Icon`);
+
+	elem.css("border-left", `2px solid ${p.traceColor.toString()}`);
+	elem.css("padding-left", parseInt(elem.css("padding-left")) - 2);
 }
