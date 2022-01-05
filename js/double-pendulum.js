@@ -1,6 +1,6 @@
 
 class DoublePendulum {
-	constructor(r1, r2, m1, m2, a1, a2, g) {
+	constructor(r1, r2, m1, m2, a1, a2, g, calcLyapunov = false) {
 		// Radius (m)
 		this.r1 = r1;
 		this.r2 = r2;
@@ -15,6 +15,14 @@ class DoublePendulum {
 		this.v2 = 0;
 		// Gravity
 		this.g = g;
+		// Lyapunov exponent
+		if (calcLyapunov) {
+			this._lya = new Lyapunov();
+		}
+	}
+
+	static fromPendulum(p, calcLyapunov = false) {
+		return new DoublePendulum(p.r1, p.r2, p.m1, p.m2, p.a1, p.a2, p.g, calcLyapunov);
 	}
 
 	// Pedulums coordinates
@@ -31,17 +39,36 @@ class DoublePendulum {
 		return this.y1 + this.r2 * Math.cos(this.a2);
 	}
 
+	// Derivatives
+	get dx2() {
+		return this.v1 * this.r1 * Math.cos(this.a1) + this.v2 * this.r2 * Math.cos(this.a2);
+	}
+	get dy2() {
+		return this.v1 * this.r1 * Math.sin(this.a1) + this.v2 * this.r2 * Math.sin(this.a2);;
+	}
+
 	// Energies
 	get mechanicalE() {
 		return this.kineticE - this.potentialE;
 	}
-
 	get kineticE() {
 		return (1 / 2) * this.m1 * this.r1 * this.r1 * this.v1 * this.v1 + (1 / 2) * this.m2 * (this.r1 * this.r1 * this.v1 * this.v1 + this.r2 * this.r2 * this.v2 * this.v2 + 2 * this.r1 * this.r2 * this.v1 * this.v2 * Math.cos(this.a1 - this.a2));
 	}
-
 	get potentialE() {
 		return -(this.m1 + this.m2) * g * this.r1 * Math.cos(this.a1) - this.m2 * g * this.r2 * Math.cos(this.a2);
+	}
+
+	// Lyapunov exponent
+	get lyapunov() {
+		if (this._lya !== undefined) {
+			return this._lya.lya;
+		}
+	}
+
+	_callLyapunov() {
+		if (this.lyapunov !== undefined) {
+			this._lya.calcLyapunov(this.dx2, this.dy2);
+		}
 	}
 
 
@@ -54,6 +81,8 @@ class DoublePendulum {
 
 		this.v1 += acc1;
 		this.v2 += acc2;
+
+		this._callLyapunov();
 	}
 
 
@@ -65,6 +94,8 @@ class DoublePendulum {
 
 		this.a1 += this.v1;
 		this.a2 += this.v2;
+
+		this._callLyapunov();
 	}
 
 
@@ -85,7 +116,7 @@ class DoublePendulum {
 		den = this.r2 * (2 * this.m1 + this.m2 - this.m2 * Math.cos(2 * this.a1 - 2 * this.a2));
 		acc2 = (num1 * (num2 + num3 + num4)) / den;
 
-		return [acc1, acc2]
+		return [acc1, acc2];
 	}
 
 
@@ -115,6 +146,8 @@ class DoublePendulum {
 		this.a2 += ret[1];
 		this.v1 += ret[2];
 		this.v2 += ret[3];
+
+		this._callLyapunov();
 	}
 
 
@@ -132,6 +165,51 @@ class DoublePendulum {
 			g2 = (f2 - an2 * f1) / (1 - an1 * an2);
 
 		return [w1, w2, g1, g2];
+	}
+
+}
+
+
+
+
+class Lyapunov {
+	constructor() {
+		// posición derivada inicial
+		this.currentPos = null;
+		this.beforePos = null;
+		// diferencias entre ángulos
+		this.initialDiff = null;
+		// sumatorio de las diferencias calculadas
+		this.acumDiff = 0;
+		// cálculo de la media
+		this.it = 0;
+	}
+
+	get lya() { // hacemos la media de los lyapunovs calculados
+		return this.it === 1 ? 0 : this.acumDiff / this.it;
+	}
+
+	calcLyapunov(dx2, dy2) {
+		this.beforePos = this.currentPos;
+		this.currentPos = [dx2, dy2];
+
+		if (this.it === 1) {
+			this.initialDiff = this._euclideanDist(this.currentPos, this.beforePos);
+		}
+		// diff_i = ln(d(t)/d0) => Es el lyapunov i / this.acumDiff => sumatorio de lyapunov i.
+		if(this.it > 1) {
+			let diff = Math.log(Math.abs(this._euclideanDist(this.currentPos, this.beforePos)) / this.initialDiff);
+			this.acumDiff += diff;
+		}
+
+    
+		this.it += 1;
+	}
+
+	_euclideanDist(pos1, pos2) {
+		let [x1, y1] = pos1,
+			[x2, y2] = pos2;
+		return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 	}
 
 }

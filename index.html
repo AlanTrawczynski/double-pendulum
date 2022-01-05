@@ -10,66 +10,26 @@
 </head>
 
 <body>
-	<a class="open-sidebar" uk-icon="icon: menu; ratio: 1.5" uk-toggle="target: #sidebar"></a>
+
+	<div id="controlIcons" class="control-icons">
+		<a id="settingsIcon" class="sidebar-icon" uk-icon="icon: cog; ratio: 1.5" uk-toggle="target: #settingsSidebar"></a>
+		<a class="sidebar-icon" id="newPendulumButton" uk-icon="icon: plus; ratio: 1.5"></a>
+	</div>
 
 
-	<div id="sidebar" uk-offcanvas="mode: push">
-		<aside class="controls uk-offcanvas-bar">
-			<div class="sliders-container">
-				<div class="slider-container">
-					<label for="r1">Radius 1 = 
-						<span class="input-value" id="r1Value"></span>m
-					</label>
-					<input class="slider uk-range" id="r1Slider" name="r1" type="range" min=1 max=10 step=0.1></input>
-				</div>
-				<div class="slider-container">
-					<label for="r2">Radius 2 = 
-						<span class="input-value" id="r2Value"></span>m
-					</label>
-					<input class="slider uk-range" id="r2Slider" name="r2" type="range" min=1 max=10 step=0.1></input>
-				</div>
-				<div class="slider-container">
-					<label for="a1">Angle 1 = 
-						<span class="input-value" id="a1Value"></span>º
-					</label>
-					<input class="slider uk-range" id="a1Slider" name="a1" type="range" min=-180 max=180 step=1></input>
-				</div>
-				<div class="slider-container">
-					<label for="a2">Angle 2 = 
-						<span class="input-value" id="a2Value"></span>º
-					</label>
-					<input class="slider uk-range" id="a2Slider" name="a2" type="range" min=-180 max=180 step=1></input>
-				</div>
-				<div class="slider-container">
-					<label for="m1">Mass 1 = 
-						<span class="input-value" id="m1Value"></span>g
-					</label>
-					<input class="slider uk-range" id="m1Slider" name="m1" type="range" min=10 max=1000 step=1></input>
-				</div>
-				<div class="slider-container">
-					<label for="m2">Mass 2 = 
-						<span class="input-value" id="m2Value"></span>g
-					</label>
-					<input class="slider uk-range" id="m2Slider" name="m2" type="range" min=10 max=1000 step=1></input>
-				</div>
-			</div>
+	<div id="settingsSidebar" class="sidebar" uk-offcanvas="mode: push">
+		<div class="settings uk-offcanvas-bar">
 
-
-			<div id="fadeSwitch" class="switch">
-				<span>Fade</span> 
-				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
-					<li><a href="#">On</a></li>
-					<li class="uk-active"><a href="#">Off</a></li>
-				</ul>
-			</div>
-
-			<div id="pendulumVisibilitySwitch" class="switch">
-				<span>Pendulum</span> 
-				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
-					<li><a href="#">Hidden</a></li>
-					<li class="uk-active"><a href="#">Visible</a></li>
-				</ul>
-			</div>
+      <div class="select">
+        <span>Solver</span>
+        <select id="solverSelect" class="uk-select uk-form-small" id="form-stacked-select">
+          <option value="RK4">Runge Kutta 4</option>
+          <option value="FE">Forward Euler</option>
+          <option value="BE">Backward Euler</option>
+        </select>
+      </div>
+      
+			<hr>
 
 			<div class="slider-container">
 				<div class="slider-label">
@@ -81,25 +41,41 @@
 				</div>
 				<input class="slider uk-range" id="speedSlider" name="speed" type="range" min=1 max=10 step=1></input>
 			</div>
+			
+			<hr>
 
-			<select id="methodSelect" class="uk-select" id="form-stacked-select">
-				<option value="RK4">Runge Kutta 4</option>
-				<option value="FE">Forward Euler</option>
-				<option value="BE">Backward Euler</option>
-			</select>
-		</aside>
+			<div id="pendulumVisibilitySwitch" class="switch">
+				<span>Pendulum</span> 
+				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+					<li><a href="#">Hidden</a></li>
+					<li class="uk-active"><a href="#">Visible</a></li>
+				</ul>
+			</div>
+
+			<hr>
+			
+			<div id="fadeSwitch" class="switch">
+				<span>Fade</span> 
+				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+					<li><a href="#">On</a></li>
+					<li class="uk-active"><a href="#">Off</a></li>
+				</ul>
+			</div>
+			
+		</div>
 	</div>
 
 
+	
 	<a id="runStopButton" class="run-stop" uk-icon="icon: play; ratio: 2"></a>
 	<a id="resetButton" class="reset" uk-icon="icon: refresh; ratio: 1.5"></a>
 	<div class="fps" id="fpsDisplay"></div>
 	<div class="canvas-container" id="canvasContainer"></div>
 
-	<script src="js/jquery-3.6.0.min.js"></script>
-	<script src="js/p5.min.js"></script>
-	<script src="js/uikit.min.js"></script>
-	<script src="js/uikit-icons.min.js"></script>
+	<script src="js/libs/jquery-3.6.0.min.js"></script>
+	<script src="js/libs/p5.min.js"></script>
+	<script src="js/libs/uikit.min.js"></script>
+	<script src="js/libs/uikit-icons.min.js"></script>
 	<script src="js/double-pendulum.js"></script>
 	<script src="js/sketch.js"></script>
 </body>

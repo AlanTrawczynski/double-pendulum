@@ -14,10 +14,27 @@ body {
 	background-color: hsl(0, 0%, 0%);
 }
 
-a.open-sidebar {
+.control-icons {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	height: 80%;
+
+	padding-top: 0.5rem; 
 	position: absolute;
-	top: 1rem;
-	left: 1rem;
+	top: 0;
+	left: 0;
+}
+.control-icons > #newPendulumButton {
+	order: 99;
+}
+
+.sidebar-icon {
+	padding: 0.5rem 0 0.5rem 1rem;
+}
+.sidebar-icon.active {
+	color: #0f6ecd;
+  text-decoration: underline;
 }
 
 a.run-stop {
@@ -41,20 +58,29 @@ a.reset {
 	content: "fps: ";
 }
 
-.controls {
+.settings {
 	display: flex;
 	flex-direction: column;
-	gap: 5vh;
+	gap: 2rem;
+}
+.settings > hr {
+	width: 80%;
+	align-self: center;
+	opacity: 0.5;
+	margin: 0;
 }
 
-.sliders-container {
+.pendulum-settings {
 	display: flex;
 	flex-direction: column;
-
-	flex-grow: 1;
 	gap: 1rem;
-	overflow-x: hidden;
 }
+.pendulum-settings > hr {
+	width: 80%;
+	align-self: center;
+	opacity: 0.5;
+}
+
 
 .slider-container {
 	display: flex;
@@ -62,10 +88,15 @@ a.reset {
 	gap: 1rem;
 }
 
-.slider-label {
+.select, .slider-label {
 	display: flex;
 	align-items: center;
 	gap: 1rem;
+}
+
+.select > select, .slider-label > .uk-inline {
+	width: 0;
+	flex-grow: 1;
 }
 
 .switch {
