@@ -81,9 +81,7 @@ function createPendulum(r1, r2, m1, m2, a1, a2) {
 
 	p.traceColor = traceColors.pop();
 	pendulums[n] = p;
-	createPendulumSidebar(n);
-	createPendulumIcon(p, n);
-	initInputs();
+	createPendulumSidebar(p, n);
 
 	if (Object.keys(pendulums).length === maxPendulums) {
 		newPendulumButton.remove();
@@ -183,16 +181,14 @@ function drawTraces() {
 	trace.strokeWeight(traceWeight);
 
 	for (const p of Object.values(pendulums)) {
-		trace.stroke(p.traceColor);
-
 		if (p.x2prev !== undefined) {
+			trace.stroke(p.traceColor);
 			trace.line(p.x2prev, p.y2prev, p.x2, p.y2);
 
 			if (fade) {
 				fadeTrace(p.x2, p.y2, p.x2prev, p.y2prev, traceWeight);
 			}
 		}
-
 		p.x2prev = p.x2;
 		p.y2prev = p.y2;
 	}
@@ -225,36 +221,6 @@ function updateFPS() {
 
 // Events
 // --------
-
-function initInputs() {
-	$('.slider').each(function () {
-		const [varName, p] = this.name.split("-"),
-			varType = varName[0],
-			pstring = p !== undefined ? "-" + p : "",
-			valueContainer = $(`#${varName}Value${pstring}`);
-
-		if (Boolean(this.dataset.init)) {
-			return;
-		}
-		this.dataset.init = true;
-
-		switch (varType) {
-			case 'r':
-				valueContainer.val(eval(`pendulums[${p}].${varName}`));
-				break;
-			case 'a':
-				valueContainer.val(degrees(eval(`pendulums[${p}].${varName}`)));	// rad -> º
-				break;
-			case 'm':
-				valueContainer.val(1000 * eval(`pendulums[${p}].${varName}`));	// kg -> g
-				break;
-			default:
-				valueContainer.val(eval(varName));
-		}
-		this.value = valueContainer.val();
-	});
-}
-
 
 function addEventListeners() {
 	rsButton.click(toggleExec);
@@ -429,6 +395,11 @@ function keyPressed() {
 		case 32:	// spacebar
 			toggleExec();
 			break;
+		case 78:	// N
+			if (maxPendulums > Object.keys(pendulums).length) {
+				createPendulum();
+			}
+			break;
 		case 82:	// R
 			resetPendulums();
 			break;
@@ -442,10 +413,10 @@ function keyPressed() {
 // HTML
 // --------
 
-function createPendulumSidebar(n) {
-	const vars = [{ name: "Radius", min: 1, max: 10, step: 0.1, unit: "m" },
-	{ name: "Angle", min: -180, max: 180, step: 1, unit: "°" },
-	{ name: "Mass", min: 10, max: 1000, step: 1, unit: "g" }];
+function createPendulumSidebar(p, n) {
+	const vars = [{ name: "Radius", initial: "r", min: 1, max: 10, step: 0.1, unit: "m" },
+	{ name: "Angle", initial: "a", min: -180, max: 180, step: 1, unit: "°" },
+	{ name: "Mass", initial: "m", min: 10, max: 1000, step: 1, unit: "g" }];
 
 	let html = `
 		<div id="p${n}Sidebar" class="sidebar" uk-offcanvas="mode: push">
@@ -453,21 +424,28 @@ function createPendulumSidebar(n) {
 
 	for (const [i, v] of vars.entries()) {
 		for (let j = 1; j <= 2; j++) {
-			const v0 = v.name[0].toLowerCase(),
-				inputId = `${v0}${j}Value-${n}`,
-				sliderId = `${v0}${j}Slider-${n}`,
-				name = `${v0}${j}-${n}`;
+			const varRep = v.initial + j,
+				inputId = `${varRep}Value-${n}`,
+				sliderId = `${varRep}Slider-${n}`,
+				inputName = `${varRep}-${n}`;
+
+			let value = p[varRep];
+			if (v.initial === 'a') {
+				value = degrees(value);
+			} else if (v.initial === 'm') {
+				value *= 1000;
+			}
 
 			html += `
 				<div class="slider-container">
 					<div class="slider-label">
-						<label for="${name}">${v.name} ${j}</label>
+						<label for="${inputName}">${v.name} ${j}</label>
 						<div class="uk-inline">
 							<span class="uk-form-icon uk-form-icon-flip">${v.unit}</span>
-							<input class="input-value uk-input uk-form-small disable-when-running" id="${inputId}" name="${name}" type="text" autocomplete="off">
+							<input class="input-value uk-input uk-form-small disable-when-running" id="${inputId}" value=${value} name="${inputName}" type="text" autocomplete="off">
 						</div>
 					</div>
-					<input class="slider uk-range disable-when-running" id="${sliderId}" name="${name}" type="range" min=${v.min} max=${v.max} step=${v.step}>
+					<input class="slider uk-range disable-when-running" id="${sliderId}" name="${inputName}" type="range" value=${value} min=${v.min} max=${v.max} step=${v.step}>
 				</div>`
 		}
 		html += n === 0 && i === vars.length - 1 ?
@@ -482,6 +460,7 @@ function createPendulumSidebar(n) {
 		</div>`
 
 	$("body").append(html);
+	createPendulumIcon(p, n);
 }
 
 
