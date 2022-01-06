@@ -167,8 +167,6 @@ class DoublePendulum {
 
 	_lagrange(f) {
 		let [t1, t2, w1, w2] = f,
-			delta_t = t1 - t2,
-
 			an1 = (this.r2 / this.r1) * (this.m2 / (this.m1 + this.m2)) * Math.cos(t1 - t2),
 			an2 = (this.r1 / this.r2) * Math.cos(t1 - t2),
 

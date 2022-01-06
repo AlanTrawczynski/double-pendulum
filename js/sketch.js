@@ -84,7 +84,7 @@ function createPendulum(r1, r2, m1, m2, a1, a2) {
 	createPendulumSidebar(p, n);
 
 	if (Object.keys(pendulums).length === maxPendulums) {
-		newPendulumButton.remove();
+		newPendulumButton.hide();
 	}
 }
 
@@ -327,6 +327,7 @@ function deletePendulum(e) {
 	delete pendulums[i];
 	$(`#p${i}Sidebar`).remove();
 	$(`#p${i}Icon`).remove();
+	newPendulumButton.show();
 }
 
 
@@ -353,7 +354,9 @@ function toggleExec() {
 		newPendulumButton.hide();
 	} else {
 		UIkit.util.attr(rsButton, 'uk-icon', 'icon: play; ratio: 2');
-		newPendulumButton.show();
+		if (Object.keys(pendulums).length !== maxPendulums) {
+			newPendulumButton.show();
+		}
 	}
 }
 
