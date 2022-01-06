@@ -5,13 +5,14 @@ const canvasContainer = $('#canvasContainer'),
 	resetButton = $('#resetButton'),
 	solverSelect = $("#solverSelect"),
 	fpsDisplay = $("#fpsDisplay"),
-	fadeSwitch = $("#fadeSwitch"),
 	pendulumVisibilitySwitch = $("#pendulumVisibilitySwitch"),
 	newPendulumButton = $("#newPendulumButton");
 
 let
 	// true if canvas is running
 	running,
+	// fade is applied if true
+	fade = false,
 	// execution speed
 	speed = 1,
 	// trace renderer
@@ -32,8 +33,7 @@ let
 	traceColors,
 	textColor,
 	// fps
-	currentFPS = 60,
-	accumulatorFPS = 0;
+	currentFPS = 60;
 
 
 function initColors() {
@@ -60,7 +60,6 @@ function setup() {
 		130 * (Math.PI / 180),
 		-130 * (Math.PI / 180)
 	);
-	updateInterface();
 	addEventListeners();
 
 	const canvas = createCanvas();
@@ -84,7 +83,7 @@ function createPendulum(r1, r2, m1, m2, a1, a2) {
 	pendulums[n] = p;
 	createPendulumSidebar(n);
 	createPendulumIcon(p, n);
-	updateInterface();
+	initInputs();
 
 	if (Object.keys(pendulums).length === maxPendulums) {
 		newPendulumButton.remove();
@@ -93,11 +92,13 @@ function createPendulum(r1, r2, m1, m2, a1, a2) {
 
 
 function initTrace() {
+	if (trace !== undefined) {
+		trace.remove();
+	}
 	trace = createGraphics(width, height);
 	trace.translate(tx, ty);
 	trace.scale(scaleFactor);
 }
-
 
 
 function draw() {
@@ -178,8 +179,7 @@ function drawPendulum() {
 
 
 function drawTraces() {
-	const traceWeight = 1.3 / scaleFactor,
-		fadeOn = fadeSwitch.find(".uk-active").text() == 'On';
+	const traceWeight = 1.3 / scaleFactor;
 	trace.strokeWeight(traceWeight);
 
 	for (const p of Object.values(pendulums)) {
@@ -188,7 +188,7 @@ function drawTraces() {
 		if (p.x2prev !== undefined) {
 			trace.line(p.x2prev, p.y2prev, p.x2, p.y2);
 
-			if (fadeOn) {
+			if (fade) {
 				fadeTrace(p.x2, p.y2, p.x2prev, p.y2prev, traceWeight);
 			}
 		}
@@ -211,12 +211,12 @@ function fadeTrace(x, y, xprev, yprev, traceWeight) {
 
 
 function updateFPS() {
-	accumulatorFPS += frameRate();
-	if (frameCount % 10 == 0) {
-		currentFPS = round(accumulatorFPS / 10);
-		accumulatorFPS = 0;
+	const fps = frameRate();
+
+	if (abs(fps - currentFPS) > 5) {
+		currentFPS = round(fps, 1);
+		fpsDisplay.text(currentFPS);
 	}
-	fpsDisplay.text(currentFPS);
 }
 
 
@@ -226,35 +226,46 @@ function updateFPS() {
 // Events
 // --------
 
-function updateInterface() {
+function initInputs() {
 	$('.slider').each(function () {
 		const [varName, p] = this.name.split("-"),
 			varType = varName[0],
 			pstring = p !== undefined ? "-" + p : "",
 			valueContainer = $(`#${varName}Value${pstring}`);
 
+		if (Boolean(this.dataset.init)) {
+			return;
+		}
+		this.dataset.init = true;
+
 		switch (varType) {
 			case 'r':
-				this.value = eval(`pendulums[${p}].${varName}`);
+				valueContainer.val(eval(`pendulums[${p}].${varName}`));
 				break;
 			case 'a':
-				this.value = degrees(eval(`pendulums[${p}].${varName}`));	// rad -> º
+				valueContainer.val(degrees(eval(`pendulums[${p}].${varName}`)));	// rad -> º
 				break;
 			case 'm':
-				this.value = 1000 * eval(`pendulums[${p}].${varName}`);	// kg -> g
+				valueContainer.val(1000 * eval(`pendulums[${p}].${varName}`));	// kg -> g
 				break;
 			default:
-				this.value = eval(varName);
+				valueContainer.val(eval(varName));
 		}
-		valueContainer.val(this.value);
+		this.value = valueContainer.val();
 	});
 }
 
 
 function addEventListeners() {
 	rsButton.click(toggleExec);
-	resetButton.click(() => location.reload());
+	resetButton.click(resetPendulums);
 	newPendulumButton.click(createPendulum);
+	$("#fadeOff").click(_ => { fade = false });
+	$("#fadeOn").click(_ => {
+		fade = true;
+		clearTrace();
+	});
+
 	$("body").on("input", ".slider", controlSliderInput);
 	$("body").on("input", ".input-value", controlValueInput);
 	$("body").on("click", ".delete-pendulum", deletePendulum);
@@ -302,10 +313,9 @@ function controlValueInput(e) {
 		varType = varName[0],
 		pstring = p !== undefined ? "-" + p : "",
 		slider = $(`#${varName}Slider${pstring}`),
-		svalue = filterNumberInput(valueContainer.value);
+		[svalue, value] = filterNumberInput(valueContainer.value);
 
-	valueContainer.value = svalue !== "" ? svalue : 0;
-	const value = +svalue;
+	valueContainer.value = svalue;
 	slider.val(value);
 
 	switch (varType) {
@@ -320,23 +330,26 @@ function controlValueInput(e) {
 			eval(`pendulums[${p}].${varName} = ${value / 1000}`);		// g -> kg
 			break;
 		default:
-			eval(`${varName} = ${+value}`);
+			eval(`${varName} = ${value}`);
 	}
 }
 
 function filterNumberInput(s) {
-	const negative = s[0] === "-",
-		dotIndex = negative ? s.substring(1).indexOf(".") : s.indexOf(".");
-	let value = s.replace(/\D+/g, "");
+	const negative = s[0] === "-";
+	let svalue = s.replace(/[^\d\.]/g, "");
+	const dotIndex = svalue.indexOf(".");
+	svalue = svalue.replace(/\./g, "");
 
 	if (dotIndex !== -1) {
-		value = value.slice(0, dotIndex) + "." + value.slice(dotIndex);
+		svalue = svalue.slice(0, dotIndex) + "." + svalue.slice(dotIndex);
 	}
-	if (negative) {
-		value = "-" + value;
-	}
+	let value = svalue !== "." ? Number(svalue) : 0;
 
-	return value;
+	if (negative) {
+		svalue = "-" + svalue;
+		value = -value;
+	}
+	return [svalue, value];
 }
 
 
@@ -379,6 +392,32 @@ function toggleExec() {
 }
 
 
+function resetPendulums() {
+	for (const [i, p] of Object.entries(pendulums)) {
+		const r1 = filterNumberInput($(`#r1Value-${i}`).val())[1],
+			r2 = filterNumberInput($(`#r2Value-${i}`).val())[1],
+			m1 = filterNumberInput($(`#m1Value-${i}`).val())[1],
+			m2 = filterNumberInput($(`#m2Value-${i}`).val())[1],
+			a1 = filterNumberInput($(`#a1Value-${i}`).val())[1],
+			a2 = filterNumberInput($(`#a2Value-${i}`).val())[1];
+
+		p.reset(r1, r2, m1 / 1000, m2 / 1000, radians(a1), radians(a2));
+	}
+
+	clearTrace();
+	if (running) {
+		toggleExec();
+	}
+}
+
+function clearTrace() {
+	trace.background(backgroundColor);
+	for (const p of Object.values(pendulums)) {
+		delete p.x2prev, p.y2prev;
+	}
+}
+
+
 function windowResized() {
 	resizeCanvas(canvasContainer.width(), canvasContainer.height());
 	updateScaleFactor();
@@ -386,8 +425,13 @@ function windowResized() {
 
 
 function keyPressed() {
-	if (keyCode === 32) {		// spacebar
-		toggleExec();
+	switch (keyCode) {
+		case 32:	// spacebar
+			toggleExec();
+			break;
+		case 82:	// R
+			resetPendulums();
+			break;
 	}
 }
 

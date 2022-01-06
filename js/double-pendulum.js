@@ -21,6 +21,7 @@ class DoublePendulum {
 		}
 	}
 
+	// Constructor
 	static fromPendulum(p, calcLyapunov = false) {
 		return new DoublePendulum(p.r1, p.r2, p.m1, p.m2, p.a1, p.a2, p.g, calcLyapunov);
 	}
@@ -69,6 +70,19 @@ class DoublePendulum {
 		if (this.lyapunov !== undefined) {
 			this._lya.calcLyapunov(this.dx2, this.dy2);
 		}
+	}
+
+
+	// Resets pendulum values
+	reset(r1, r2, m1, m2, a1, a2) {
+		this.r1 = r1;
+		this.r2 = r2;
+		this.m1 = m1;
+		this.m2 = m2;
+		this.a1 = a1;
+		this.a2 = a2;
+		this.v1 = 0;
+		this.v2 = 0;
 	}
 
 
@@ -141,7 +155,7 @@ class DoublePendulum {
 		ret = k1.map((x, i) =>
 			(1 / 6) * (x + 2 * k2[i] + 2 * k3[i] + k4[i])
 		);
-    
+
 		this.a1 += ret[0];
 		this.a2 += ret[1];
 		this.v1 += ret[2];
@@ -175,7 +189,7 @@ class Lyapunov {
 	constructor() {
 		// posición derivada inicial
 		this.currentPos = null;
-		this.beforePos = null;
+		this.prevPos = null;
 		// diferencias entre ángulos
 		this.initialDiff = null;
 		// sumatorio de las diferencias calculadas
@@ -189,24 +203,21 @@ class Lyapunov {
 	}
 
 	calcLyapunov(dx2, dy2) {
-		this.beforePos = this.currentPos;
+		this.prevPos = this.currentPos;
 		this.currentPos = [dx2, dy2];
 
 		if (this.it === 1) {
-			this.initialDiff = this._euclideanDist(this.currentPos, this.beforePos);
+			this.initialDiff = this._euclideanDist(this.currentPos, this.prevPos);
 		}
 		// diff_i = ln(d(t)/d0) => Es el lyapunov i / this.acumDiff => sumatorio de lyapunov i.
-		if(this.it > 1) {
-			let diff = Math.log(Math.abs(this._euclideanDist(this.currentPos, this.beforePos)) / this.initialDiff);
-			this.acumDiff += diff;
+		else {
+			this.acumDiff += Math.log(this._euclideanDist(this.currentPos, this.prevPos) / this.initialDiff);
 		}
-
-    
 		this.it += 1;
 	}
 
 	_euclideanDist(pos1, pos2) {
-		let [x1, y1] = pos1,
+		const [x1, y1] = pos1,
 			[x2, y2] = pos2;
 		return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 	}
