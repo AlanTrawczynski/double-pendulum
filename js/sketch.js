@@ -395,11 +395,6 @@ function keyPressed() {
 		case 32:	// spacebar
 			toggleExec();
 			break;
-		case 78:	// N
-			if (maxPendulums > Object.keys(pendulums).length) {
-				createPendulum();
-			}
-			break;
 		case 82:	// R
 			resetPendulums();
 			break;

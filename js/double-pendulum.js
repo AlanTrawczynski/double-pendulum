@@ -134,7 +134,7 @@ class DoublePendulum {
 	}
 
 
-	runRK4(dt) {
+	runRK4() {
 		let l = [this.a1, this.a2, this.v1, this.v2],
 			k1, k2, k3, k4, ret;
 
