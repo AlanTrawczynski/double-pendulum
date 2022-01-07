@@ -41,11 +41,11 @@ class DoublePendulum {
 	}
 
 	// Derivatives
-	get dx2() {
-		return this.v1 * this.r1 * Math.cos(this.a1) + this.v2 * this.r2 * Math.cos(this.a2);
+	get dx1() {
+		return this.v1 * this.r1 * Math.cos(this.a1);
 	}
-	get dy2() {
-		return this.v1 * this.r1 * Math.sin(this.a1) + this.v2 * this.r2 * Math.sin(this.a2);;
+	get dy1() {
+		return this.v1 * this.r1 * Math.sin(this.a1);
 	}
 
 	// Energies
@@ -68,7 +68,10 @@ class DoublePendulum {
 
 	_callLyapunov() {
 		if (this.lyapunov !== undefined) {
-			this._lya.calcLyapunov(this.dx2, this.dy2);
+			this._lya.calcLyapunov(this.dx1, this.dy1);
+		}
+		else {
+			console.log(`error`)
 		}
 	}
 
@@ -83,6 +86,10 @@ class DoublePendulum {
 		this.a2 = a2;
 		this.v1 = 0;
 		this.v2 = 0;
+
+		if (this._lya !== undefined) {
+			this._lya = new Lyapunov();
+		}
 	}
 
 
@@ -197,7 +204,7 @@ class Lyapunov {
 	}
 
 	get lya() { // hacemos la media de los lyapunovs calculados
-		return this.it === 1 ? 0 : this.acumDiff / this.it;
+		return this.it <= 1 ? 0 : this.acumDiff / this.it;
 	}
 
 	calcLyapunov(dx2, dy2) {
@@ -207,8 +214,8 @@ class Lyapunov {
 		if (this.it === 1) {
 			this.initialDiff = this._euclideanDist(this.currentPos, this.prevPos);
 		}
-		// diff_i = ln(d(t)/d0) => Es el lyapunov i / this.acumDiff => sumatorio de lyapunov i.
-		else {
+		// this.acumDiff => sumatorio de lyapunov_i. / lyapunov_i = ln(d(t)/d0) / d(t) => distancia entre dos trazos cercanos en el tiempo t
+		else if (this.it > 1) {
 			this.acumDiff += Math.log(this._euclideanDist(this.currentPos, this.prevPos) / this.initialDiff);
 		}
 		this.it += 1;
@@ -219,5 +226,4 @@ class Lyapunov {
 			[x2, y2] = pos2;
 		return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 	}
-
 }

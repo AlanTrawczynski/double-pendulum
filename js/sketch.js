@@ -2,17 +2,18 @@
 
 const canvasContainer = $('#canvasContainer'),
 	rsButton = $('#runStopButton'),
-	resetButton = $('#resetButton'),
 	solverSelect = $("#solverSelect"),
 	fpsDisplay = $("#fpsDisplay"),
-	pendulumVisibilitySwitch = $("#pendulumVisibilitySwitch"),
+	lyaDisplay = $("#lyaDisplay"),
 	newPendulumButton = $("#newPendulumButton");
 
 let
 	// true if canvas is running
 	running,
 	// fade is applied if true
-	fade = false,
+	fade = $("#fadeSwitch").find(".uk-active").text() == 'On',
+	// pendulums are drawn if true
+	showPendulum = $("#showPendulumSwitch").find(".uk-active").text() == 'Visible',
 	// execution speed
 	speed = 1,
 	// trace renderer
@@ -76,7 +77,7 @@ function setup() {
 
 function createPendulum(r1, r2, m1, m2, a1, a2) {
 	const p = Object.keys(pendulums).length === 0 ?
-		new DoublePendulum(2, 2.5, 0.05, 0.05, 130 * (Math.PI / 180), -130 * (Math.PI / 180), g, false) : DoublePendulum.fromPendulum(pendulums[0]),
+		new DoublePendulum(2, 2.5, 0.05, 0.05, 130 * (Math.PI / 180), -130 * (Math.PI / 180), g, true) : DoublePendulum.fromPendulum(pendulums[0]),
 		n = [...Array(maxPendulums).keys()].filter(k => !Object.keys(pendulums).includes('' + k))[0];
 
 	p.traceColor = traceColors.pop();
@@ -89,28 +90,16 @@ function createPendulum(r1, r2, m1, m2, a1, a2) {
 }
 
 
-function initTrace() {
-	if (trace !== undefined) {
-		trace.remove();
-	}
-	trace = createGraphics(width, height);
-	trace.translate(tx, ty);
-	trace.scale(scaleFactor);
-}
-
-
 function draw() {
-	const showPendulum = pendulumVisibilitySwitch.find(".uk-active").text() == 'Visible';
-
 	background(backgroundColor);
 	updateFPS();
 	translate(tx, ty);
 	image(trace, 0, 0);
 
 	if (running) {
+		// slow execution
 		if (speed <= 30) {
 			push();
-			// slow execution
 			for (let i = 0; i < speed; i++) {
 				background(backgroundColor);
 				pop(); push();
@@ -122,19 +111,22 @@ function draw() {
 				}
 				drawTraces();
 			}
-		} else {
-			// fast execution
+		}
+		// fast execution
+		else {
 			for (let i = 0; i < speed; i++) {
 				runPendulums();
 				drawTraces();
 			}
 		}
+		// console.log(`lyapunov = ${pendulums[0].lyapunov}`)
 	} else {
 		scale(scaleFactor);
 		if (showPendulum) {
 			drawPendulum();
 		}
 	}
+	lyaDisplay.text(round(pendulums[0].lyapunov, 2))
 }
 
 
@@ -224,13 +216,19 @@ function updateFPS() {
 
 function addEventListeners() {
 	rsButton.click(toggleExec);
-	resetButton.click(resetPendulums);
+	$('#resetButton').click(resetPendulums);
 	newPendulumButton.click(createPendulum);
+	$("#clearTraceButton").click(clearTrace);
+
 	$("#fadeOff").click(_ => { fade = false });
 	$("#fadeOn").click(_ => {
 		fade = true;
 		clearTrace();
 	});
+	$("#hidePendulum").click(_ => { showPendulum = false });
+	$("#showPendulum").click(_ => { showPendulum = true });
+	$("#hideLya").click(_ => { lyaDisplay.hide() });
+	$("#showLya").click(_ => { lyaDisplay.show() });
 
 	$("body").on("input", ".slider", controlSliderInput);
 	$("body").on("input", ".input-value", controlValueInput);
@@ -342,6 +340,15 @@ function updateTranslate() {
 	ty = height / 2;
 }
 
+function initTrace() {
+	if (trace !== undefined) {
+		trace.remove();
+	}
+	trace = createGraphics(width, height);
+	trace.translate(tx, ty);
+	trace.scale(scaleFactor);
+}
+
 
 function toggleExec() {
 	running = !running;
@@ -401,6 +408,9 @@ function keyPressed() {
 		case 82:	// R
 			resetPendulums();
 			break;
+		case 67:	// C
+			clearTrace();
+			break;
 	}
 }
 
@@ -418,7 +428,7 @@ function createPendulumSidebar(p, n) {
 
 	let html = `
 		<div id="p${n}Sidebar" class="sidebar" uk-offcanvas="mode: push">
-			<div class="pendulum-settings uk-offcanvas-bar">`
+			<div class="settings uk-offcanvas-bar">`
 
 	for (const [i, v] of vars.entries()) {
 		for (let j = 1; j <= 2; j++) {

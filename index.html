@@ -35,7 +35,7 @@
 				<div class="slider-label">
 					<label for="speed">Speed</label>
 					<div class="uk-inline">
-						<span class="uk-form-icon">×</span>
+						<span class="uk-form-icon">&times</span>
 						<input class="input-value uk-input uk-form-small" id="speedValue" value=1 name="speed" type="text" autocomplete="off">
 					</div>
 				</div>
@@ -44,23 +44,37 @@
 			
 			<hr>
 
-			<div id="pendulumVisibilitySwitch" class="switch">
+			<div id="showPendulumSwitch" class="switch">
 				<span>Pendulum</span> 
 				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
-					<li><a href="#">Hidden</a></li>
-					<li class="uk-active"><a href="#">Visible</a></li>
+					<li><a id="hidePendulum" href="#">Hidden</a></li>
+					<li class="uk-active"><a id="showPendulum" href="#">Visible</a></li>
 				</ul>
 			</div>
 
 			<hr>
 			
-			<div class="switch">
+			<div id="fadeSwitch" class="switch">
 				<span>Fade</span> 
 				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
 					<li><a id="fadeOn" href="#">On</a></li>
 					<li class="uk-active"><a id="fadeOff" href="#">Off</a></li>
 				</ul>
 			</div>
+
+			<hr>
+
+			<div id="showLyaSwitch" class="switch">
+				<span>Lyapunov</span> 
+				<ul class="uk-subnav uk-subnav-pill" uk-switcher>
+					<li class="uk-active"><a id="hideLya" href="#">Hidden</a></li>
+					<li><a id="showLya" href="#">Visible</a></li>
+				</ul>
+			</div>
+
+			<hr>
+
+			<button id="clearTraceButton" class="uk-button uk-button-primary">Clear trace</button>
 			
 		</div>
 	</div>
@@ -70,6 +84,8 @@
 	<a id="runStopButton" class="run-stop" uk-icon="icon: play; ratio: 2"></a>
 	<a id="resetButton" class="reset" uk-icon="icon: refresh; ratio: 1.5"></a>
 	<div class="fps" id="fpsDisplay"></div>
+	<div class="lyapunov" id="lyaDisplay"></div>
+
 	<div class="canvas-container" id="canvasContainer"></div>
 
 	<script src="js/libs/jquery-3.6.0.min.js"></script>

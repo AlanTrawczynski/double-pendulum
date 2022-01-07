@@ -58,29 +58,27 @@ a.reset {
 	content: "fps: ";
 }
 
-.settings {
-	display: flex;
-	flex-direction: column;
-	gap: 2rem;
+.lyapunov {
+	display: none;
+	position: fixed;
+	top: 1.5rem;
+	right: 0.3rem;
 }
-.settings > hr {
-	width: 80%;
-	align-self: center;
-	opacity: 0.5;
-	margin: 0;
+.lyapunov::before {
+	content: "\03BB\00a0=\00a0";
 }
 
-.pendulum-settings {
+.settings {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
 }
-.pendulum-settings > hr {
+
+.settings > hr {
 	width: 80%;
 	align-self: center;
 	opacity: 0.5;
 }
-
 
 .slider-container {
 	display: flex;
@@ -106,8 +104,10 @@ a.reset {
 }
 .switch > .uk-subnav {
 	margin: 0;
+	gap: 0.8rem;
+	justify-content: flex-end;
 }
-.switch > .uk-subnav > li:first-child {
+.switch > .uk-subnav > li {
 	padding: 0;
 }
 
